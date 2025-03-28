@@ -7,21 +7,31 @@ export default function CoursesPage() {
     const [faculty, setFaculty] = useState<Faculty[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [form, setForm] = useState<Omit<Course, "id">>({ name: "", department: "", faculty_id: 0 });
+    const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
-        loadFaculty();
-        loadCourses();
+        const storedToken = localStorage.getItem("token");
+        if (!storedToken) {
+            window.location.href = "/login";
+            return;
+        }
+        setToken(storedToken);
+        loadFaculty(storedToken);
+        loadCourses(storedToken);
     }, []);
 
-    const loadFaculty = async () => setFaculty(await fetchFaculty());
-    const loadCourses = async () => setCourses(await fetchCourses());
+    const loadFaculty = async (token: string) => setFaculty(await fetchFaculty(token));
+    const loadCourses = async (token: string) => setCourses(await fetchCourses(token));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await createCourse(form);
-        loadCourses();
+        if (!token) return;
+        await createCourse(form, token);
+        loadCourses(token);
         setForm({ name: "", department: "", faculty_id: 0 });
     };
+
+    if (!token) return null; // Prevent rendering until token is checked
 
     return (
         <div className="max-w-4xl mx-auto">
