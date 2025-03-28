@@ -1,7 +1,7 @@
 export default function Dashboard() {
     return (
-        <div className=" min-h-screen bg-gradient-to-b from-green-800 to-yellow-500 text-white">
-            <div className="text-center py-30">
+        <div className="min-h-screen bg-gradient-to-b from-green-800 to-yellow-500 text-white">
+            <div className="text-center py-12">
                 <h1 className="text-4xl font-bold">Welcome to Your Exam Scheduler</h1>
                 <p className="mt-2 text-lg">Plan smarter, study better</p>
             </div>

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Faculty, Course, Classroom, Timetable
@@ -6,6 +7,14 @@ from pydantic import BaseModel
 from services import TimetableService
 
 app = FastAPI(title="Exam Scheduling System API")
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3001"],  # Frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Pydantic models for requests
 class FacultyCreate(BaseModel):
