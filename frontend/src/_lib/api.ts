@@ -2,42 +2,13 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8000";
 
-export interface Faculty {
-    id: number;
-    name: string;
-    department: string;
-}
-
-export interface Course {
-    id: number;
-    name: string;
-    department: string;
-    faculty_id: number;
-}
-
-export interface Classroom {
-    id: number;
-    name: string;
-    capacity: number;
-}
-
-export interface TimetableEntry {
-    id: number;
-    course_name: string;
-    classroom_name: string;
-    day_of_week: string;
-    start_time: string;
-    end_time: string;
-}
-
-export interface Token {
-    access_token: string;
-    token_type: string;
-}
-
-export interface Message {
-    message: string;
-}
+export interface Faculty { id: number; name: string; department: string; }
+export interface Course { id: number; name: string; department: string; faculty_id: number; }
+export interface Classroom { id: number; name: string; capacity: number; }
+export interface TimetableEntry { id: number; course_name: string; classroom_name: string; day_of_week: string; start_time: string; end_time: string; }
+export interface Token { access_token: string; token_type: string; }
+export interface Message { message: string; }
+export interface User { username: string; email: string; }
 
 export const fetchFaculty = async (token: string): Promise<Faculty[]> =>
     axios.get(`${API_URL}/faculty/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.data);
@@ -70,3 +41,9 @@ export const signup = async (username: string, email: string, password: string):
 
 export const forgotPassword = async (email: string): Promise<Message> =>
     axios.post(`${API_URL}/forgot-password`, { email }).then(res => res.data);
+
+export const getUserProfile = async (token: string): Promise<User> =>
+    axios.get(`${API_URL}/profile`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.data);
+
+export const updateUserProfile = async (data: User, token: string): Promise<Message> =>
+    axios.put(`${API_URL}/profile`, data, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.data);

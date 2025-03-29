@@ -3,26 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, signup, forgotPassword } from "../../_lib/api";
+import { Tab } from "@headlessui/react";
+import { classNames } from "../../_lib/utils";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
-    const [tab, setTab] = useState<"login" | "signup" | "forgot">("login");
+    const [tabIndex, setTabIndex] = useState(0);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!username || !password) return toast.error("Please fill all fields");
         setLoading(true);
-        setMessage("");
         try {
             const { access_token } = await login(username, password);
             localStorage.setItem("token", access_token);
+            toast.success("Logged in successfully!");
             router.push("/");
         } catch (err: any) {
-            setMessage(err.response?.data?.detail || "Login failed");
+            toast.error(err.response?.data?.detail || "Login failed");
         } finally {
             setLoading(false);
         }
@@ -30,17 +33,17 @@ export default function LoginPage() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!username || !email || !password) return toast.error("Please fill all fields");
         setLoading(true);
-        setMessage("");
         try {
             await signup(username, email, password);
-            setMessage("Signup successful! Please login.");
-            setTab("login");
+            toast.success("Signup successful! Please login.");
+            setTabIndex(0);
             setUsername("");
             setEmail("");
             setPassword("");
         } catch (err: any) {
-            setMessage(err.response?.data?.detail || "Signup failed");
+            toast.error(err.response?.data?.detail || "Signup failed");
         } finally {
             setLoading(false);
         }
@@ -48,169 +51,152 @@ export default function LoginPage() {
 
     const handleForgotPassword = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!email) return toast.error("Please enter your email");
         setLoading(true);
-        setMessage("");
         try {
             const response = await forgotPassword(email);
-            setMessage(response.message);
+            toast.success(response.message);
             setEmail("");
         } catch (err: any) {
-            setMessage(err.response?.data?.detail || "Reset request failed");
+            toast.error(err.response?.data?.detail || "Reset request failed");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-green-800 to-yellow-500 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-                <h1 className="text-3xl font-bold text-green-800 mb-6 text-center">
-                    {tab === "login" ? "Login" : tab === "signup" ? "Signup" : "Forgot Password"}
-                </h1>
-                <div className="flex justify-around mb-6">
-                    <button
-                        onClick={() => setTab("login")}
-                        className={`px-4 py-2 ${tab === "login" ? "bg-blue-600 text-white" : "text-blue-600"} rounded hover:bg-blue-700 hover:text-white transition`}
-                    >
-                        Login
-                    </button>
-                    <button
-                        onClick={() => setTab("signup")}
-                        className={`px-4 py-2 ${tab === "signup" ? "bg-blue-600 text-white" : "text-blue-600"} rounded hover:bg-blue-700 hover:text-white transition`}
-                    >
-                        Signup
-                    </button>
-                    <button
-                        onClick={() => setTab("forgot")}
-                        className={`px-4 py-2 ${tab === "forgot" ? "bg-blue-600 text-white" : "text-blue-600"} rounded hover:bg-blue-700 hover:text-white transition`}
-                    >
-                        Forgot Password
-                    </button>
-                </div>
-
-                {tab === "login" && (
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div>
-                            <label htmlFor="username-login" className="block text-sm font-medium text-gray-700">
-                                Username
-                            </label>
-                            <input
-                                id="username-login"
-                                type="text"
-                                value={username}
-                                onChange={e => setUsername(e.target.value)}
-                                placeholder="Enter username"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password-login" className="block text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                id="password-login"
-                                type="password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="Enter password"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        {message && <p className="text-red-500 text-sm">{message}</p>}
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-                            disabled={loading}
-                        >
-                            {loading ? "Logging in..." : "Login"}
-                        </button>
-                    </form>
-                )}
-
-                {tab === "signup" && (
-                    <form onSubmit={handleSignup} className="space-y-6">
-                        <div>
-                            <label htmlFor="username-signup" className="block text-sm font-medium text-gray-700">
-                                Username
-                            </label>
-                            <input
-                                id="username-signup"
-                                type="text"
-                                value={username}
-                                onChange={e => setUsername(e.target.value)}
-                                placeholder="Enter username"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="email-signup" className="block text-sm font-medium text-gray-700">
-                                Email
-                            </label>
-                            <input
-                                id="email-signup"
-                                type="email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                placeholder="Enter email"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password-signup" className="block text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                id="password-signup"
-                                type="password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="Enter password"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        {message && <p className={message.includes("successful") ? "text-green-500" : "text-red-500"} text-sm>{message}</p>}
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-                            disabled={loading}
-                        >
-                            {loading ? "Signing up..." : "Signup"}
-                        </button>
-                    </form>
-                )}
-
-                {tab === "forgot" && (
-                    <form onSubmit={handleForgotPassword} className="space-y-6">
-                        <div>
-                            <label htmlFor="email-forgot" className="block text-sm font-medium text-gray-700">
-                                Email
-                            </label>
-                            <input
-                                id="email-forgot"
-                                type="email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                placeholder="Enter your email"
-                                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                disabled={loading}
-                            />
-                        </div>
-                        {message && <p className={message.includes("sent") ? "text-green-500" : "text-red-500"} text-sm>{message}</p>}
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-                            disabled={loading}
-                        >
-                            {loading ? "Sending..." : "Reset Password"}
-                        </button>
-                    </form>
-                )}
+        <div className="min-h-screen bg-gradient-to-br from-green-800 to-yellow-500 flex items-center justify-center p-4">
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg transform transition-all hover:scale-105">
+                <h1 className="text-4xl font-bold text-green-800 mb-8 text-center">UZ Exam Scheduler</h1>
+                <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
+                    <Tab.List className="flex space-x-1 rounded-lg bg-blue-100 p-1 mb-6">
+                        {["Login", "Signup", "Forgot Password"].map((title) => (
+                            <Tab
+                                key={title}
+                                className={({ selected }) =>
+                                    classNames(
+                                        "w-full py-2.5 text-sm font-medium rounded-lg",
+                                        selected ? "bg-blue-600 text-white" : "text-blue-600 hover:bg-blue-200"
+                                    )
+                                }
+                            >
+                                {title}
+                            </Tab>
+                        ))}
+                    </Tab.List>
+                    <Tab.Panels>
+                        <Tab.Panel>
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                <div>
+                                    <label htmlFor="username-login" className="block text-sm font-medium text-gray-700">Username</label>
+                                    <input
+                                        id="username-login"
+                                        type="text"
+                                        value={username}
+                                        onChange={e => setUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="password-login" className="block text-sm font-medium text-gray-700">Password</label>
+                                    <input
+                                        id="password-login"
+                                        type="password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        placeholder="Enter password"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center"
+                                    disabled={loading}
+                                >
+                                    {loading ? <Spinner /> : "Login"}
+                                </button>
+                            </form>
+                        </Tab.Panel>
+                        <Tab.Panel>
+                            <form onSubmit={handleSignup} className="space-y-6">
+                                <div>
+                                    <label htmlFor="username-signup" className="block text-sm font-medium text-gray-700">Username</label>
+                                    <input
+                                        id="username-signup"
+                                        type="text"
+                                        value={username}
+                                        onChange={e => setUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email-signup" className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        id="email-signup"
+                                        type="email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        placeholder="Enter email"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="password-signup" className="block text-sm font-medium text-gray-700">Password</label>
+                                    <input
+                                        id="password-signup"
+                                        type="password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        placeholder="Enter password"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center"
+                                    disabled={loading}
+                                >
+                                    {loading ? <Spinner /> : "Signup"}
+                                </button>
+                            </form>
+                        </Tab.Panel>
+                        <Tab.Panel>
+                            <form onSubmit={handleForgotPassword} className="space-y-6">
+                                <div>
+                                    <label htmlFor="email-forgot" className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        id="email-forgot"
+                                        type="email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        placeholder="Enter your email"
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center"
+                                    disabled={loading}
+                                >
+                                    {loading ? <Spinner /> : "Reset Password"}
+                                </button>
+                            </form>
+                        </Tab.Panel>
+                    </Tab.Panels>
+                </Tab.Group>
             </div>
         </div>
     );
+}
+
+function Spinner() {
+    return <svg className="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>;
 }

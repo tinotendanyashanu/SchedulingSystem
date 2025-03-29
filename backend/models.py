@@ -1,6 +1,14 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Time
 from sqlalchemy.orm import relationship
-from database import Base, engine  # Import engine here
+from database import Base , engine # Ensure this import works
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+
 class Faculty(Base):
     __tablename__ = "faculty"
     id = Column(Integer, primary_key=True, index=True)
@@ -38,5 +46,4 @@ class Timetable(Base):
     classroom = relationship("Classroom", back_populates="timetables")
     faculty = relationship("Faculty", back_populates="timetables")
 
-# Create tables
 Base.metadata.create_all(bind=engine)
